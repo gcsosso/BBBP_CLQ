@@ -5,6 +5,7 @@ import argparse
 
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import matthews_corrcoef, roc_auc_score
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
@@ -142,5 +143,21 @@ ax.set_xlabel('Feature Importance')
 ax.set_ylabel('Clique')
 ax.set_title('Feature Importance Analysis by Scikit-learn using Mean Decrease in Impurity')
 plt.savefig(fig_name + '_feature_importance.png', bbox_inches = "tight")
+
+feature_importance = permutation_importance(clf, X, y, n_repeats=10, random_state=42, n_jobs=8)
+feature_importance = pd.DataFrame({'feature': vocab, 'importance': feature_importance['importances_mean'], 'frequency': np.sum(X > 0, axis=0)})
+feature_importance = feature_importance[feature_importance['frequency'] > 50]
+feature_importance = feature_importance.sort_values('importance', ascending=False)
+
+feature_importance.to_csv(fig_name + '_feature_importance_permutation.csv', index=False)
+
+# Plot the feature importance of the top 20 features
+plt.figure(figsize=(16, 9))
+sns.set(font_scale = 2.0)
+ax = sns.barplot(x='importance', y='feature', data=feature_importance.head(20))
+ax.set_xlabel('Feature Importance')
+ax.set_ylabel('Clique')
+ax.set_title('Feature Importance Analysis by Scikit-learn using Permutation Importance')
+plt.savefig(fig_name + '_feature_importance_permutation.png', bbox_inches = "tight")
 
 #plt.show()
