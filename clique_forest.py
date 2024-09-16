@@ -121,4 +121,26 @@ plt.savefig(fig_name + '_auc.png')
 
 print('Overall Mean ROC AUC', np.mean(auc), '+-', np.std(np.mean(auc, axis=1)))
 
+# Do feature importance analysis
+clf = RandomForestClassifier(n_estimators=64, random_state=42)
+clf.fit(X, y)
+
+feature_importance = clf.feature_importances_
+feature_importance_std = np.std([tree.feature_importances_ for tree in clf.estimators_], axis=0)
+
+feature_importance = pd.DataFrame({'feature': vocab, 'importance': feature_importance, 'std': feature_importance_std, 'frequency': np.sum(X > 0, axis=0)})
+feature_importance = feature_importance[feature_importance['frequency'] > 50]
+feature_importance = feature_importance.sort_values('importance', ascending=False)
+
+feature_importance.to_csv(fig_name + '_feature_importance.csv', index=False)
+
+# Plot the feature importance of the top 20 features
+plt.figure(figsize=(16, 9))
+sns.set(font_scale = 2.0)
+ax = sns.barplot(x='importance', y='feature', data=feature_importance.head(20))
+ax.set_xlabel('Feature Importance')
+ax.set_ylabel('Clique')
+ax.set_title('Feature Importance Analysis by Scikit-learn using Mean Decrease in Impurity')
+plt.savefig(fig_name + '_feature_importance.png', bbox_inches = "tight")
+
 #plt.show()
