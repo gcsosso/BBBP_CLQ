@@ -9,10 +9,8 @@ from sklearn.inspection import permutation_importance
 from sklearn.metrics import matthews_corrcoef, roc_auc_score
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-import umap
-from sklearn.manifold import TSNE
-
-from imblearn.over_sampling import SMOTE 
+from imblearn.over_sampling import SMOTE
+import shap
 
 from tqdm import tqdm
 
@@ -160,4 +158,16 @@ ax.set_ylabel('Clique')
 ax.set_title('Feature Importance Analysis by Scikit-learn using Permutation Importance')
 plt.savefig(fig_name + '_feature_importance_permutation.png', bbox_inches = "tight")
 
+# SHAP analysis
+print('Starting SHAP analysis')
+explainer = shap.Explainer(clf, X)
+print('Calculating SHAP values')
+shap_values = explainer(X)
+shap_values.feature_names = vocab
+print('Done calculating SHAP values')
+
+plt.figure(figsize=(16, 9))
+sns.set(font_scale = 2.0)
+shap.plots.beeswarm(shap_values[:, :, 1], max_display=20, show=False)
+plt.savefig(fig_name + '_shap.png', bbox_inches = "tight")
 #plt.show()
